@@ -1,7 +1,6 @@
 package com.microweather.app.db;
 
 import java.util.ArrayList;
-import java.util.Currency;
 import java.util.List;
 
 import android.content.ContentValues;
