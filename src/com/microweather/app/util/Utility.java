@@ -7,10 +7,13 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.preference.PreferenceManager;
 import android.text.TextUtils;
+import android.util.Log;
 
 
+import com.google.gson.Gson;
 import com.microweather.app.db.MicroWeatherDB;
 import com.microweather.app.model.City;
+import com.microweather.app.model.CityModel;
 import com.microweather.app.model.County;
 import com.microweather.app.model.Province;
 
@@ -24,13 +27,13 @@ public class Utility {
 	 */
 	public synchronized static boolean handleProvinceResponse(MicroWeatherDB microWeatherDB,String response){
 		if(!TextUtils.isEmpty(response)){
-			String [] allProvinces = response.split(",");
+			String [] allProvinces = response.split("\\|");
 			if(allProvinces!=null&&allProvinces.length>0){
 				for(String p :allProvinces){
-					String [] array=p.split("\\|");
+					String [] array=p.split("\\:");
 					Province province = new Province();
-					province.setProvinceCode(array[0]);
-					province.setProvinceName(array[1]);
+					province.setProvinceCode(array[1]);
+					province.setProvinceName(array[0]);
 					//将解析出来的对象存到Province表中
 					microWeatherDB.saveProvince(province);
 				}
@@ -101,15 +104,32 @@ public class Utility {
 	 */
 	public static void handleWeatherResponse(Context context,String response){
 		//TODO 解析具体天气的方法
-		
-		saveWeatherInfo(context,"","");//保存到本地
+		Gson gson = new Gson();
+		CityModel cm=gson.fromJson(response, CityModel.class);
+		saveWeatherInfo(context,cm);//保存到本地
 	}
 	
-	public static void saveWeatherInfo(Context context,String cityName,String weatherCode){
-		//TODO 保存天气的方法
+	public static void saveWeatherInfo(Context context,CityModel cm){	
 		SimpleDateFormat sdf = new SimpleDateFormat("yyyy年M月d日", Locale.CHINA);
 		SharedPreferences.Editor editor = PreferenceManager.getDefaultSharedPreferences(context).edit();
-		editor.putString("", "");
+		editor.putString("city", cm.getRetData().city);
+		editor.putString("pinyin", cm.getRetData().pinyin);
+		editor.putString("citycode", cm.getRetData().citycode);
+		editor.putString("date", cm.getRetData().date);
+		editor.putString("time", cm.getRetData().time);
+		editor.putString("postCode", cm.getRetData().postCode);
+		editor.putString("longitude", cm.getRetData().longitude);
+		editor.putString("latitude", cm.getRetData().latitude);
+		editor.putString("altitude", cm.getRetData().altitude);
+		editor.putString("weather", cm.getRetData().weather);
+		editor.putString("temp", cm.getRetData().temp);
+		editor.putString("l_tmp", cm.getRetData().l_tmp);
+		editor.putString("h_tmp", cm.getRetData().h_tmp);
+		editor.putString("WD", cm.getRetData().WD);
+		editor.putString("WS", cm.getRetData().WS);
+		editor.putString("sunrise", cm.getRetData().sunrise);
+		editor.putString("sunset", cm.getRetData().sunset);
+		editor.putBoolean("city_selected", true);
 		editor.commit();
 	}
 

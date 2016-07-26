@@ -25,6 +25,10 @@
             </intent-filter>
         </activity>
         <activity android:name="com.microweather.app.activity.WeatherActivity" />
+
+        <service android:name="com.microweather.app.service.AutoUpdataService" />
+
+        <receiver android:name="com.microweather.app.receiver.AutoUpdataReceiver" />
     </application>
 
 </manifest>

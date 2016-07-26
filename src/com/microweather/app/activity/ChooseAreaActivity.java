@@ -9,6 +9,7 @@ import com.microweather.app.db.MicroWeatherDB;
 import com.microweather.app.model.City;
 import com.microweather.app.model.County;
 import com.microweather.app.model.Province;
+import com.microweather.app.util.FileUtils;
 import com.microweather.app.util.HttpUtil;
 import com.microweather.app.util.Utility;
 import android.app.Activity;
@@ -18,6 +19,7 @@ import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.text.TextUtils;
+import android.util.Log;
 import android.view.View;
 import android.view.Window;
 import android.widget.AdapterView;
@@ -96,7 +98,7 @@ public class ChooseAreaActivity extends Activity {
 			public void onItemClick(AdapterView<?> arg0, View view, int index,
 					long arg3) {
 
-				if (currentLevel == LEVEL_PROVINCE) {
+				/*if (currentLevel == LEVEL_PROVINCE) {
 					selectedProvince = provinceList.get(index);
 					queryCities();
 				} else if (currentLevel == LEVEL_CITY) {
@@ -109,7 +111,16 @@ public class ChooseAreaActivity extends Activity {
 					intent.putExtra("county_code", countyCode);
 					startActivity(intent);
 					finish();
-				}
+				}*/
+				
+				String code = provinceList.get(index).getProvinceCode();
+				String name = provinceList.get(index).getProvinceName();
+				Intent intent = new Intent(ChooseAreaActivity.this,
+						WeatherActivity.class);
+				intent.putExtra("code",code);
+				intent.putExtra("name", name);
+				startActivity(intent);
+				finish();
 			}
 		});
 		queryProvinces();
@@ -179,15 +190,40 @@ public class ChooseAreaActivity extends Activity {
 	 * @param type
 	 */
 	private void queryFromServer(final String code, final String type) {
-		String address;
-		if (!TextUtils.isEmpty(code)) {
-			address = "http://www.weather.com.cn/data/list3/city" + code
-					+ ".xml";
-		} else {
-			address = "http://www.weather.com.cn/data/list3/city.xml";
-		}
+//		String address;
+//		if (!TextUtils.isEmpty(code)) {
+//			address = "http://www.weather.com.cn/data/list3/city" + code
+//					+ ".xml";
+//		} else {
+//			address = "http://www.weather.com.cn/data/list3/city.xml";
+//		}
 		showProgressDialog();
-		HttpUtil.sendHttpRequest(address, new HttpCallbackListener() {
+		//读取本地城市列表
+		String response =FileUtils.readAssets(this);
+		//Log.v("ddd", response);
+		
+		boolean result = Utility.handleProvinceResponse(microWeatherDB,
+				response);
+		
+		if (result) {
+			// 通过runOnUiThread() 方法回到主线程处理逻辑
+			runOnUiThread(new Runnable() {
+				public void run() {
+					closeProgressDialog();
+					queryProvinces();
+					/*if ("province".equals(type)) {
+						queryProvinces();
+					} else if ("city".equals(type)) {
+						queryCities();
+					} else if ("county".equals(type)) {
+						queryCounties();
+					}*/
+				}
+
+			});
+		}
+		
+		/*HttpUtil.sendHttpRequest(address, new HttpCallbackListener() {
 
 			@Override
 			public void onFinish(String response) {
@@ -233,7 +269,7 @@ public class ChooseAreaActivity extends Activity {
 				});
 
 			}
-		});
+		});*/
 	}
 
 	/**
